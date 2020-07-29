@@ -41,10 +41,8 @@
 import Conversation from './Conversation'
 import Hint from '../../Hint'
 import LoadingHint from '../../LoadingHint'
-import { fetchConversations } from '../../../services/conversationsService'
 import { joinConversation, leaveConversation } from '../../../services/participantsService'
 import { EventBus } from '../../../services/EventBus'
-import debounce from 'debounce'
 
 export default {
 	name: 'ConversationsList',
@@ -58,45 +56,32 @@ export default {
 			type: String,
 			default: '',
 		},
+
+		conversationsList: {
+			type: Array,
+			required: true,
+		},
+
+		initialisedConversations: {
+			type: Boolean,
+			default: true,
+		},
 	},
 
 	data() {
 		return {
-			initialisedConversations: false,
 			isFetchingConversations: false,
 		}
 	},
 
-	computed: {
-		conversationsList() {
-			let conversations = this.$store.getters.conversationsList
-
-			if (this.searchText !== '') {
-				const lowerSearchText = this.searchText.toLowerCase()
-				conversations = conversations.filter(conversation => conversation.displayName.toLowerCase().indexOf(lowerSearchText) !== -1 || conversation.name.toLowerCase().indexOf(lowerSearchText) !== -1)
-			}
-
-			return conversations.sort(this.sortConversations)
-		},
-	},
-	beforeMount() {
-		this.fetchConversations()
-	},
 	mounted() {
-		/** Refreshes the conversations every 30 seconds */
-		window.setInterval(() => {
-			if (!this.isFetchingConversations) {
-				this.fetchConversations()
-			}
-		}, 30000)
-
 		EventBus.$on('routeChange', this.onRouteChange)
-		EventBus.$on('shouldRefreshConversations', this.debounceFetchConversations)
 	},
+
 	beforeDestroy() {
 		EventBus.$off('routeChange', this.onRouteChange)
-		EventBus.$off('shouldRefreshConversations', this.debounceFetchConversations)
 	},
+
 	methods: {
 		onRouteChange({ from, to }) {
 			if (from.name === 'conversation') {
@@ -107,50 +92,7 @@ export default {
 				this.$store.dispatch('markConversationRead', to.params.token)
 			}
 		},
-		sortConversations(conversation1, conversation2) {
-			if (conversation1.isFavorite !== conversation2.isFavorite) {
-				return conversation1.isFavorite ? -1 : 1
-			}
 
-			return conversation2.lastActivity - conversation1.lastActivity
-		},
-
-		debounceFetchConversations: debounce(function() {
-			if (!this.isFetchingConversations) {
-				this.fetchConversations()
-			}
-		}, 3000),
-
-		async fetchConversations() {
-			this.isFetchingConversations = true
-
-			/**
-			 * Fetches the conversations from the server and then adds them one by one
-			 * to the store.
-			 */
-			try {
-				const conversations = await fetchConversations()
-				this.initialisedConversations = true
-				this.$store.dispatch('purgeConversationsStore')
-				conversations.data.ocs.data.forEach(conversation => {
-					this.$store.dispatch('addConversation', conversation)
-					if (conversation.token === this.$store.getters.getToken()) {
-						this.$store.dispatch('markConversationRead', this.$store.getters.getToken())
-					}
-				})
-				/**
-				 * Emits a global event that is used in App.vue to update the page title once the
-				 * ( if the current route is a conversation and once the conversations are received)
-				 */
-				EventBus.$emit('conversationsReceived', {
-					singleConversation: false,
-				})
-				this.isFetchingConversations = false
-			} catch (error) {
-				console.debug('Error while fetching conversations: ', error)
-				this.isFetchingConversations = false
-			}
-		},
 		// Emit the click event so the search text in the leftsidebar can be reset.
 		handleConversationClick() {
 			this.$emit('click-conversation')
