@@ -30,7 +30,9 @@
 				@click="showModal">
 				<Plus size="24" />
 			</Button>
-			<p>{{ t('spreed','Create a new group conversation') }}</p>
+			<p class="hint">
+				{{ t('spreed','Create a new group conversation') }}
+			</p>
 		</Popover>
 		<!-- New group form -->
 		<Modal
@@ -385,5 +387,9 @@ it back */
 
 .wrapper {
 	margin: auto;
+}
+
+.hint {
+	padding: 8px 12px;
 }
 </style>
