@@ -74,6 +74,8 @@ no-multicast-peers
     - [https://github.com/coturn/coturn/issues/33](https://github.com/coturn/coturn/issues/33)
     - [https://github.com/nextcloud/spreed/issues/257](https://github.com/nextcloud/spreed/issues/257)
 
+- The `total-quota` parameter limits the number of allowed simultaneous connections to the TURN server (a value of _0_ means _unlimited_). Along with [`max-bps` and `bps-capacity`](https://github.com/coturn/coturn/blob/upstream/4.5.1.3/README.turnserver#L414-L423) it can be used to limit the effects of a [DoS attack against the TURN server](https://tools.ietf.org/html/rfc8656#section-21.3.1). The value of _100_ shown above should be fine for a small server in a regular setup in which the TURN server is usually not needed for most participants, but it should be adjusted depending on your specific setup.
+
 - If your TURN server is running **not behind a NAT**, but with direct www connection and **static public IP**, than you can limit the IPs it listens at and answers with, by setting those as `listening-ip` and `relay-ip`. On larger deployments it is recommended to run your TURN server on a dedicated machine that is directly accessible from the internet.
 
 - The following settings can be used to adjust the **logging behaviour**. On SBCs with SDcards you may want to adjust this, as by default coTURN logs very verbose. The config file explains everything very well:
