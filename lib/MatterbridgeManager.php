@@ -642,6 +642,9 @@ class MatterbridgeManager {
 			return null;
 		}
 
+		$cmd = sprintf('chmod u+x %s', escapeshellarg($binaryPath));
+		@exec($cmd, $output, $returnCode);
+
 		$cmd = escapeshellcmd($binaryPath) . ' ' . escapeshellarg('-version');
 		@exec($cmd, $output, $returnCode);
 
